@@ -7,7 +7,7 @@ services:
       - model
       - mgmt
       - console
-    image: instill/${API_GATEWAY_HOST}:latest
+    image: instill/${API_GATEWAY_HOST}:${EDITION}
     restart: unless-stopped
     environment:
       API_GATEWAY_LOG_LEVEL: DEBUG
@@ -20,7 +20,7 @@ services:
       - model
       - console
       - mgmt
-    image: instill/${PIPELINE_BACKEND_HOST}:latest
+    image: instill/${PIPELINE_BACKEND_HOST}:${EDITION}
 
   pipeline_backend:
     profiles:
@@ -30,10 +30,10 @@ services:
       - model
       - console
       - mgmt
-    image: instill/${PIPELINE_BACKEND_HOST}:latest
+    image: instill/${PIPELINE_BACKEND_HOST}:${EDITION}
     environment:
       CFG_SERVER_DEBUG: "true"
-      CFG_SERVER_EDITION: ${EDITION:-local-ce:unknown}
+      CFG_SERVER_EDITION: local-ce:${EDITION:-}
     ports:
       - ${PIPELINE_BACKEND_PRIVATEPORT}:${PIPELINE_BACKEND_PRIVATEPORT}
       - ${PIPELINE_BACKEND_PUBLICPORT}:${PIPELINE_BACKEND_PUBLICPORT}
@@ -46,7 +46,7 @@ services:
       - model
       - mgmt
       - console
-    image: instill/${CONNECTOR_BACKEND_HOST}:latest
+    image: instill/${CONNECTOR_BACKEND_HOST}:${EDITION}
 
   connector_backend_init:
     profiles:
@@ -56,7 +56,7 @@ services:
       - model
       - mgmt
       - console
-    image: instill/${CONNECTOR_BACKEND_HOST}:latest
+    image: instill/${CONNECTOR_BACKEND_HOST}:${EDITION}
 
   connector_backend_worker:
     profiles:
@@ -66,7 +66,7 @@ services:
       - model
       - mgmt
       - console
-    image: instill/${CONNECTOR_BACKEND_HOST}:latest
+    image: instill/${CONNECTOR_BACKEND_HOST}:${EDITION}
 
   connector_backend:
     profiles:
@@ -76,10 +76,10 @@ services:
       - model
       - mgmt
       - console
-    image: instill/${CONNECTOR_BACKEND_HOST}:latest
+    image: instill/${CONNECTOR_BACKEND_HOST}:${EDITION}
     environment:
       CFG_SERVER_DEBUG: "true"
-      CFG_SERVER_EDITION: ${EDITION:-local-ce:unknown}
+      CFG_SERVER_EDITION: local-ce:${EDITION:-}
     ports:
       - ${CONNECTOR_BACKEND_PRIVATEPORT}:${CONNECTOR_BACKEND_PRIVATEPORT}
       - ${CONNECTOR_BACKEND_PUBLICPORT}:${CONNECTOR_BACKEND_PUBLICPORT}
@@ -92,7 +92,7 @@ services:
       - connector
       - mgmt
       - console
-    image: instill/${MODEL_BACKEND_HOST}:latest
+    image: instill/${MODEL_BACKEND_HOST}:${EDITION}
 
   model_backend_init:
     profiles:
@@ -102,7 +102,7 @@ services:
       - connector
       - mgmt
       - console
-    image: instill/${MODEL_BACKEND_HOST}:latest
+    image: instill/${MODEL_BACKEND_HOST}:${EDITION}
 
   model_backend_worker:
     profiles:
@@ -112,7 +112,7 @@ services:
       - connector
       - mgmt
       - console
-    image: instill/${MODEL_BACKEND_HOST}:latest
+    image: instill/${MODEL_BACKEND_HOST}:${EDITION}
     environment:
       CFG_SERVER_DEBUG: "true"
 
@@ -124,10 +124,10 @@ services:
       - connector
       - mgmt
       - console
-    image: instill/${MODEL_BACKEND_HOST}:latest
+    image: instill/${MODEL_BACKEND_HOST}:${EDITION}
     environment:
       CFG_SERVER_DEBUG: "true"
-      CFG_SERVER_EDITION: ${EDITION:-local-ce:unknown}
+      CFG_SERVER_EDITION: local-ce:${EDITION:-}
     ports:
       - ${MODEL_BACKEND_PRIVATEPORT}:${MODEL_BACKEND_PRIVATEPORT}
       - ${MODEL_BACKEND_PUBLICPORT}:${MODEL_BACKEND_PUBLICPORT}
@@ -140,7 +140,7 @@ services:
       - connector
       - model
       - console
-    image: instill/${MGMT_BACKEND_HOST}:latest
+    image: instill/${MGMT_BACKEND_HOST}:${EDITION}
 
   mgmt_backend_init:
     profiles:
@@ -150,7 +150,7 @@ services:
       - connector
       - model
       - console
-    image: instill/${MGMT_BACKEND_HOST}:latest
+    image: instill/${MGMT_BACKEND_HOST}:${EDITION}
 
   mgmt_backend:
     profiles:
@@ -160,10 +160,10 @@ services:
       - connector
       - model
       - console
-    image: instill/${MGMT_BACKEND_HOST}:latest
+    image: instill/${MGMT_BACKEND_HOST}:${EDITION}
     environment:
       CFG_SERVER_DEBUG: "true"
-      CFG_SERVER_EDITION: ${EDITION:-local-ce:unknown}
+      CFG_SERVER_EDITION: local-ce:${EDITION:-}
     ports:
       - ${MGMT_BACKEND_PRIVATEPORT}:${MGMT_BACKEND_PRIVATEPORT}
       - ${MGMT_BACKEND_PUBLICPORT}:${MGMT_BACKEND_PUBLICPORT}
@@ -176,10 +176,10 @@ services:
       - connector
       - model
       - mgmt
-    image: instill/${CONSOLE_HOST}:latest
+    image: instill/${CONSOLE_HOST}:${EDITION}
     environment:
       NEXT_PUBLIC_DISABLE_USAGE_COLLECTION: "false"
-      NEXT_PUBLIC_CONSOLE_EDITION: ${EDITION:-local-ce:unknown}
+      NEXT_PUBLIC_CONSOLE_EDITION: local-ce:${EDITION:-}
       NODE_ENV: development
     ports:
       - ${CONSOLE_PORT}:${CONSOLE_PORT}

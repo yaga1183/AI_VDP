@@ -40,20 +40,19 @@ jobs:
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
 
-      - name: Launch VDP (latest)
-        if: inputs.target == 'latest'
+      - name: Launch VDP (${{ inputs.target }})
         run: |
           COMPOSE_PROFILES=all \
-          EDITION=local-ce:test \
+          EDITION=${{ inputs.target }} \
           ITMODE=true \
           TRITON_CONDA_ENV_PLATFORM=cpu \
           CONSOLE_BASE_URL_HOST=console \
           CONSOLE_BASE_API_GATEWAY_URL_HOST=api-gateway \
-          docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --quiet-pull
+          docker compose -f docker-compose.yml -f docker-compose.edition.yml up -d --quiet-pull
           COMPOSE_PROFILES=all \
-          docker compose -f docker-compose.yml -f docker-compose.dev.yml rm -f
-      - name: Run console integration test (latest)
-        if: inputs.target == 'latest'
+          EDITION=${{ inputs.target }} \
+          docker compose -f docker-compose.yml -f docker-compose.edition.yml rm -f
+      - name: Run console integration test (${{ inputs.target }})
         run: |
           git clone https://github.com/instill-ai/console.git console
           cd console && docker build --build-arg TEST_USER='root' -f Dockerfile.playwright -t console-playwright .

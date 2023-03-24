@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   api_gateway:
-    image: instill/${API_GATEWAY_HOST}:latest
+    image: instill/${API_GATEWAY_HOST}:${EDITION}
     build:
       context: ./${API_GATEWAY_HOST}
       args:
@@ -12,7 +12,7 @@ services:
         KRAKEND_CE_VERSION: ${KRAKEND_CE_VERSION}
 
   pipeline_backend:
-    image: instill/${PIPELINE_BACKEND_HOST}:latest
+    image: instill/${PIPELINE_BACKEND_HOST}:${EDITION}
     build:
       context: ./${PIPELINE_BACKEND_HOST}
       args:
@@ -21,7 +21,7 @@ services:
         K6_VERSION: ${K6_VERSION}
 
   connector_backend:
-    image: instill/${CONNECTOR_BACKEND_HOST}:latest
+    image: instill/${CONNECTOR_BACKEND_HOST}:${EDITION}
     build:
       context: ./${CONNECTOR_BACKEND_HOST}
       args:
@@ -30,7 +30,7 @@ services:
         K6_VERSION: ${K6_VERSION}
 
   model_backend:
-    image: instill/${MODEL_BACKEND_HOST}:latest
+    image: instill/${MODEL_BACKEND_HOST}:${EDITION}
     build:
       context: ./${MODEL_BACKEND_HOST}
       args:
@@ -41,7 +41,7 @@ services:
         ARTIVC_VERSION: ${ARTIVC_VERSION}
 
   mgmt_backend:
-    image: instill/${MGMT_BACKEND_HOST}:latest
+    image: instill/${MGMT_BACKEND_HOST}:${EDITION}
     build:
       context: ./${MGMT_BACKEND_HOST}
       args:
@@ -50,12 +50,12 @@ services:
         K6_VERSION: ${K6_VERSION}
 
   console:
-    image: instill/${CONSOLE_HOST}:latest
+    image: instill/${CONSOLE_HOST}:${EDITION}
     build:
       context: ./${CONSOLE_HOST}
 
   console_playwright:
-    image: instill/${CONSOLE_HOST}-playwright:latest
+    image: instill/${CONSOLE_HOST}-playwright:${EDITION}
     build:
       context: ./${CONSOLE_HOST}
       dockerfile: Dockerfile.playwright
