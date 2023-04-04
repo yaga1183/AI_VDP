@@ -17,19 +17,19 @@ import * as helper from "./helper.js"
 const model = "easyocr";
 const modelRepository = "instill-ai/model-easyocr-dvc";
 
-let modelInstances
+let modelTags
 if (__ENV.TEST_CPU_ONLY) {
-    modelInstances = [
-        `models/${model}/instances/v1.0-cpu`,
+    modelTags = [
+        `v1.0-cpu`,
     ]
 } else if (__ENV.TEST_GPU_ONLY) {
-    modelInstances = [
-        `models/${model}/instances/v1.0-gpu`,
+    modelTags = [
+        `v1.0-gpu`,
     ]
 } else {
-    modelInstances = [
-        `models/${model}/instances/v1.0-cpu`,
-        `models/${model}/instances/v1.0-gpu`,
+    modelTags = [
+        `v1.0-cpu`,
+        `v1.0-gpu`,
     ]
 }
 
@@ -45,14 +45,14 @@ export function setup() {
     if (__ENV.MODE == "demo") {
     } else {
         helper.setupConnectors()
-        helper.deployModel(model, modelRepository, modelInstances)
-        helper.createPipeline(model, modelInstances)
+        helper.deployModel(model, modelRepository, modelTags)
+        helper.createPipeline(model, modelTags)
     }
 }
 
 export default function () {
     group("Inference: EasyOCR model", function () {
-        verify.verifyOcr(`${model}`, "url", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyOcr(`${model}`, "url", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "detection": {
                     "image_url": "https://artifacts.instill.tech/imgs/sign-small.jpg",
@@ -68,7 +68,7 @@ export default function () {
             },
         }))
 
-        verify.verifyOcr(`${model}`, "base64", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyOcr(`${model}`, "base64", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "detection": {
                     "image_base64": encoding.b64encode(constant.signsmallImg, "b"),
@@ -87,7 +87,7 @@ export default function () {
         var fd = new FormData();
         fd.append("file", http.file(constant.signsmallImg, "sign-small.jpg"));
         fd.append("file", http.file(constant.signpostImg, "emergency-evacuation-route-signpost.jpg"));
-        verify.verifyOcr(`${model}`, "form_data", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
+        verify.verifyOcr(`${model}`, "form_data", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
             headers: {
                 "Content-Type": `multipart/form-data; boundary=${fd.boundary}`,
             },
@@ -99,7 +99,7 @@ export default function () {
 export function teardown(data) {
     if (__ENV.MODE == "demo") {
     } else {
-        helper.cleanup(model)
+        helper.cleanup(model, modelTags)
     }
 }
 

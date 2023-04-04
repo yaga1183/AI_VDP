@@ -16,13 +16,13 @@ import * as helper from "./helper.js"
 const model = "gpt2";
 const modelRepository = "instill-ai/model-gpt2-megatron-dvc"; 
 
-let modelInstances
+let modelTags
 if (__ENV.MODE == "demo") {
-    modelInstances = [
+    modelTags = [
         `models/${model}/instances/fp32-345m-2-gpu`,
     ]
 } else {
-    modelInstances = [
+    modelTags = [
         `models/${model}/instances/fp32-345m-4-gpu`,
     ]
 }
@@ -43,8 +43,8 @@ export function setup() {
     if (__ENV.MODE == "demo") {
     } else {
         helper.setupConnectors()
-        helper.deployModel(model, modelRepository, modelInstances)
-        helper.createPipeline(model, modelInstances)
+        helper.deployModel(model, modelRepository, modelTags)
+        helper.createPipeline(model, modelTags)
     }
 }
 
@@ -55,7 +55,7 @@ export default function () {
     }
 
     group("Inference: GPT2 model", function () {
-        verify.verifyGPT2(`${model}`, "url", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyGPT2(`${model}`, "url", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "text_generation": {
                     "prompt": "Instill AI is",
@@ -70,7 +70,7 @@ export default function () {
 
         var fd = new FormData();
         fd.append("prompt", "Instill AI is");
-        verify.verifyGPT2(`${model}`, "form_data", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
+        verify.verifyGPT2(`${model}`, "form_data", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
             headers: {
                 "Content-Type": `multipart/form-data; boundary=${fd.boundary}`,
             },
@@ -88,7 +88,7 @@ export function teardown(data) {
 
     if (__ENV.MODE == "demo") {
     } else {
-        helper.cleanup(model)
+        helper.cleanup(model, modelTags)
     }
 }
 

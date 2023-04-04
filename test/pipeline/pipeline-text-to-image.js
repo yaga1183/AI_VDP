@@ -16,17 +16,17 @@ import * as helper from "./helper.js"
 const model = "stable-diffusion";
 const modelRepository = "instill-ai/model-diffusion-dvc";
 
-let modelInstances
+let modelTags
 if (__ENV.TEST_CPU_ONLY) {
-    modelInstances = [
+    modelTags = [
         `models/${model}/instances/v1.5-cpu`,
     ]
 } else if (__ENV.TEST_GPU_ONLY) {
-    modelInstances = [
+    modelTags = [
         `models/${model}/instances/v1.5-fp16-gpu1`,
     ]
 } else {
-    modelInstances = [
+    modelTags = [
         `models/${model}/instances/v1.5-cpu`,
         `models/${model}/instances/v1.5-fp16-gpu1`,
     ]
@@ -43,14 +43,14 @@ export function setup() {
     if (__ENV.MODE == "demo") {
     } else {
         helper.setupConnectors()
-        helper.deployModel(model, modelRepository, modelInstances)
-        helper.createPipeline(model, modelInstances)
+        helper.deployModel(model, modelRepository, modelTags)
+        helper.createPipeline(model, modelTags)
     }
 }
 
 export default function () {
     group("Inference: Diffusion model", function () {
-        verify.verifyTextToImage(`${model}`, "url", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyTextToImage(`${model}`, "url", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "text_to_image": {
                     "prompt": "Instill AI",
@@ -65,7 +65,7 @@ export default function () {
 
         var fd = new FormData();
         fd.append("prompt", "hello world");
-        verify.verifyTextToImage(`${model}`, "form_data", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
+        verify.verifyTextToImage(`${model}`, "form_data", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
             headers: {
                 "Content-Type": `multipart/form-data; boundary=${fd.boundary}`,
             },
@@ -78,7 +78,7 @@ export default function () {
 export function teardown(data) {
     if (__ENV.MODE == "demo") {
     } else {
-        helper.cleanup(model)
+        helper.cleanup(model, modelTags)
     }
 }
 

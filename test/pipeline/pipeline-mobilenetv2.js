@@ -19,19 +19,19 @@ import * as helper from "./helper.js"
 const model = "mobilenetv2";
 const modelRepository = "instill-ai/model-mobilenetv2-dvc";
 
-let modelInstances
+let modelTags
 if (__ENV.TEST_CPU_ONLY) {
-    modelInstances = [
-        `models/${model}/instances/v1.0-cpu`,
+    modelTags = [
+        `v1.0-cpu`,
     ]
 } else if (__ENV.TEST_GPU_ONLY) {
-    modelInstances = [
-        `models/${model}/instances/v1.0-gpu`,
+    modelTags = [
+        `v1.0-gpu`,
     ]
 } else {
-    modelInstances = [
-        `models/${model}/instances/v1.0-cpu`,
-        `models/${model}/instances/v1.0-gpu`,
+    modelTags = [
+        `v1.0-cpu`,
+        `v1.0-gpu`,
     ]
 }
 
@@ -47,15 +47,15 @@ export function setup() {
     if (__ENV.MODE == "demo") {
     } else {
         helper.setupConnectors()
-        helper.deployModel(model, modelRepository, modelInstances)
-        helper.createPipeline(model, modelInstances)
+        helper.deployModel(model, modelRepository, modelTags)
+        helper.createPipeline(model, modelTags)
     }
 }
 
 export default function () {
     group("Trigger: MobilenetV2 model", function () {
 
-        verify.verifyClassification(`${model}`, "url", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyClassification(`${model}`, "url", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "classification": {
                     "image_url": "https://artifacts.instill.tech/imgs/dog.jpg",
@@ -71,7 +71,7 @@ export default function () {
             },
         }))
 
-        verify.verifyClassification(`${model}`, "base64", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyClassification(`${model}`, "base64", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "classification": {
                     "image_base64": encoding.b64encode(constant.dogImg, "b"),
@@ -90,7 +90,7 @@ export default function () {
         var fd = new FormData();
         fd.append("file", http.file(constant.dogImg, "dog.jpg"));
         fd.append("file", http.file(constant.bearImg, "bear.jpg"));
-        verify.verifyClassification(`${model}`, "form_data", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
+        verify.verifyClassification(`${model}`, "form_data", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
             headers: {
                 "Content-Type": `multipart/form-data; boundary=${fd.boundary}`,
             },
@@ -102,7 +102,7 @@ export default function () {
 export function teardown(data) {
     if (__ENV.MODE == "demo") {
     } else {
-        helper.cleanup(model)
+        helper.cleanup(model, modelTags)
     }
 }
 

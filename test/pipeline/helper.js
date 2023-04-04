@@ -53,61 +53,74 @@ export function setupConnectors() {
     });
 }
 
-export function deployModel(model, repository, modelInstances) {
+export function deployModel(model, repository, modelTags) {
     group(`Model Backend API: Deploy a model repo ${repository}`, function () {
-
-        let createModelResp = http.request("POST", `${constant.apiHost}/v1alpha/models`, JSON.stringify({
-            "id": `${model}`,
-            "model_definition": "model-definitions/github",
-            "configuration": {
-                "repository": `${repository}`
-            }
-        }), {
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-        check(createModelResp, {
-            [`POST /v1alpha/models ${model} response status`]: (r) =>
-                r.status === 201
-        });
-
-        // Check model creation finished
-        let currentTime = new Date().getTime();
-        let timeoutTime = new Date().getTime() + 10 * 60 * 1000;
-        while (timeoutTime > currentTime) {
-            let res = http.get(`${constant.apiHost}/v1alpha/${createModelResp.json().operation.name}`, {
+        for (let i = 0; i < modelTags.length; i++) {
+            let modelID = `${model}-${modelTags[i]}`.replace(".", "")
+            let createModelResp = http.request("POST", `${constant.apiHost}/v1alpha/models`, JSON.stringify({
+                "id": modelID,
+                "model_definition": "model-definitions/github",
+                "configuration": {
+                    "repository": `${repository}`,
+                    "tag": `${modelTags[i]}`
+                }
+            }), {
                 headers: {
                     "Content-Type": "application/json",
                 },
             })
-            if (res.json().operation.done === true) {
-                break
-            }
-            sleep(1)
-            currentTime = new Date().getTime();
-        }
-
-        for (let i = 0; i < modelInstances.length; i++) {
-            check(http.post(`${constant.apiHost}/v1alpha/${modelInstances[i]}/deploy`, {}, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }), {
-                [`POST /v1alpha/${modelInstances[i]}/deploy online response status`]: (r) =>
-                    r.status === 200,
+            console.log("------>>>>> createModelResp ",  JSON.stringify({
+                "id": modelID,
+                "model_definition": "model-definitions/github",
+                "configuration": {
+                    "repository": `${repository}`,
+                    "tag": `${modelTags[i]}`
+                }
+            }))
+            console.log("------>>>>> createModelResp json ", createModelResp.json().operation.name)
+            check(createModelResp, {
+                [`POST /v1alpha/models ${model} response status`]: (r) =>
+                    r.status === 201
             });
-
-            // Check the model instance state being updated in 24 hours. Some GitHub models is huge.
-            currentTime = new Date().getTime();
-            timeoutTime = new Date().getTime() + 24 * 60 * 60 * 1000;
+    
+            // Check model creation finished
+            let currentTime = new Date().getTime();
+            let timeoutTime = new Date().getTime() + 10 * 60 * 1000;
             while (timeoutTime > currentTime) {
-                var res = http.get(`${constant.apiHost}/v1alpha/${modelInstances[i]}`, {
+                let res = http.get(`${constant.apiHost}/v1alpha/${createModelResp.json().operation.name}`, {
                     headers: {
                         "Content-Type": "application/json",
                     },
                 })
-                if (res.json().instance.state === "STATE_ONLINE") {
+                if (res.json().operation.done === true) {
+                    break
+                }
+                sleep(1)
+                currentTime = new Date().getTime();
+            }
+
+            console.log("----->> modelID ", modelID)            
+            check(http.post(`${constant.apiHost}/v1alpha/models/${modelID}/deploy`, {}, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }), {
+                [`POST /v1alpha/models/${modelID}/deploy online response status`]: (r) =>
+                    r.status === 200,
+            });
+
+            // Check the model state being updated in 24 hours. Some GitHub models is huge.
+            currentTime = new Date().getTime();
+            timeoutTime = new Date().getTime() + 24 * 60 * 60 * 1000;
+            while (timeoutTime > currentTime) {
+                var res = http.get(`${constant.apiHost}/v1alpha/models/${modelID}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+                console.log("----->> res ", res.status)
+                console.log("----->> res body ", res.json().model.state)
+                if (res.json().model.state === "STATE_ONLINE") {
                     break
                 }
                 sleep(1)
@@ -117,11 +130,15 @@ export function deployModel(model, repository, modelInstances) {
     });
 }
 
-export function createPipeline(model, modelInstances) {
-    var syncHTTPMultiModelInstRecipe = {
+export function createPipeline(model, modelTags) {
+    let models = []
+    for (let i = 0; i < modelTags.length; i++) {
+        models.push(`models/${model}-${modelTags[i]}`.replace(".", ""))
+    }
+    var syncHTTPMultiModelRecipe = {
         recipe: {
             source: `source-connectors/source-http`,
-            model_instances: modelInstances,
+            models: models,
             destination: `destination-connectors/destination-http`
         }
     }
@@ -129,7 +146,7 @@ export function createPipeline(model, modelInstances) {
             id: `${model}`,
             description: randomString(50),
         },
-        syncHTTPMultiModelInstRecipe
+        syncHTTPMultiModelRecipe
     );
 
     check(http.request("POST", `${constant.apiHost}/v1alpha/pipelines`, JSON.stringify(reqHTTP), {
@@ -142,7 +159,7 @@ export function createPipeline(model, modelInstances) {
 }
 
 
-export function cleanup(model) {
+export function cleanup(model, modelTags) {
     check(http.request("DELETE", `${constant.apiHost}/v1alpha/pipelines/${model}`, null, {}), {
         [`DELETE /v1alpha/pipelines/${model} response status 204`]: (r) => r.status === 204,
     });
@@ -155,9 +172,11 @@ export function cleanup(model) {
         [`DELETE /v1alpha/destination-connectors/destination-http response status 204`]: (r) => r.status === 204,
     });
 
-    check(http.request("DELETE", `${constant.apiHost}/v1alpha/models/${model}`, null, {}), {
-        [`DELETE /v1alpha/models/${model} response status is 204`]: (r) => r.status === 204,
-    });
+    for (let i = 0; i < modelTags.length; i++) {
+        check(http.request("DELETE", `${constant.apiHost}/v1alpha/models/${model}-${modelTags[i]}.replace(".", "")`, null, {}), {
+            [`DELETE /v1alpha/models/${model}-${modelTags[i]}.replace(".", "") response status is 204`]: (r) => r.status === 204,
+        });
+    }
 }
 
 // Initialize

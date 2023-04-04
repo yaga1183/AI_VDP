@@ -17,20 +17,20 @@ import * as helper from "./helper.js"
 const model = "instance-segmentation";
 const modelRepository = "instill-ai/model-instance-segmentation-dvc";
 
-let modelInstances
+let modelTags
 
 if (__ENV.TEST_CPU_ONLY) {
-    modelInstances = [
-        `models/${model}/instances/v1.0-cpu`,
+    modelTags = [
+        `v1.0-cpu`,
     ]
 } else if (__ENV.TEST_GPU_ONLY) {
-    modelInstances = [
-        `models/${model}/instances/v1.0-gpu`,
+    modelTags = [
+        `v1.0-gpu`,
     ]
 } else {
-    modelInstances = [
-        `models/${model}/instances/v1.0-cpu`,
-        `models/${model}/instances/v1.0-gpu`,
+    modelTags = [
+        `v1.0-cpu`,
+        `v1.0-gpu`,
     ]
 }
 
@@ -46,15 +46,15 @@ export function setup() {
     if (__ENV.MODE == "demo") {
     } else {
         helper.setupConnectors()
-        helper.deployModel(model, modelRepository, modelInstances)
-        helper.createPipeline(model, modelInstances)
+        helper.deployModel(model, modelRepository, modelTags)
+        helper.createPipeline(model, modelTags)
     }
 }
 
 export default function () {
     group("Trigger: Instance Segmentation model", function () {
 
-        verify.verifyInstanceSegmentation(`${model}`, "url", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyInstanceSegmentation(`${model}`, "url", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "instance_segmentation": {
                     "image_url": "https://artifacts.instill.tech/imgs/dog.jpg",
@@ -70,7 +70,7 @@ export default function () {
             },
         }))
 
-        verify.verifyInstanceSegmentation(`${model}`, "base64", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
+        verify.verifyInstanceSegmentation(`${model}`, "base64", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger`, JSON.stringify({
             "task_inputs": [{
                 "instance_segmentation": {
                     "image_base64": encoding.b64encode(constant.dogImg, "b"),
@@ -89,7 +89,7 @@ export default function () {
         var fd = new FormData();
         fd.append("file", http.file(constant.dogImg, "dog.jpg"));
         fd.append("file", http.file(constant.bearImg, "bear.jpg"));
-        verify.verifyInstanceSegmentation(`${model}`, "form_data", modelInstances, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
+        verify.verifyInstanceSegmentation(`${model}`, "form_data", modelTags, http.request("POST", `${constant.apiHost}/v1alpha/pipelines/${model}/trigger-multipart`, fd.body(), {
             headers: {
                 "Content-Type": `multipart/form-data; boundary=${fd.boundary}`,
             },
@@ -101,7 +101,7 @@ export default function () {
 export function teardown(data) {
     if (__ENV.MODE == "demo") {
     } else {
-        helper.cleanup(model)
+        helper.cleanup(model, modelTags)
     }
 }
 
