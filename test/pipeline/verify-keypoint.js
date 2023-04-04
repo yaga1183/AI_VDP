@@ -11,7 +11,7 @@ export function verifyKeypoint(pipelineId,triggerType, modelTags, resp) {
 
     for (let i = 0; i < modelTags.length; i++) {
         check(resp, {
-            [`POST /v1alpha/pipelines/${pipelineId}/trigger (${triggerType}) response model_outputs[${i}].model`]: (r) => r.json().model_outputs[i].model === modelTags[i],
+            [`POST /v1alpha/pipelines/${pipelineId}/trigger (${triggerType}) response model_outputs[${i}].model`]: (r) => r.json().model_outputs[i].model === `models/${pipelineId}-${modelTags[i]}`.replace(".", ""),
         });
     }
 

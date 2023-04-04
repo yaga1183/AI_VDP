@@ -69,15 +69,6 @@ export function deployModel(model, repository, modelTags) {
                     "Content-Type": "application/json",
                 },
             })
-            console.log("------>>>>> createModelResp ",  JSON.stringify({
-                "id": modelID,
-                "model_definition": "model-definitions/github",
-                "configuration": {
-                    "repository": `${repository}`,
-                    "tag": `${modelTags[i]}`
-                }
-            }))
-            console.log("------>>>>> createModelResp json ", createModelResp.json().operation.name)
             check(createModelResp, {
                 [`POST /v1alpha/models ${model} response status`]: (r) =>
                     r.status === 201
@@ -99,7 +90,6 @@ export function deployModel(model, repository, modelTags) {
                 currentTime = new Date().getTime();
             }
 
-            console.log("----->> modelID ", modelID)            
             check(http.post(`${constant.apiHost}/v1alpha/models/${modelID}/deploy`, {}, {
                 headers: {
                     "Content-Type": "application/json",
@@ -118,8 +108,6 @@ export function deployModel(model, repository, modelTags) {
                         "Content-Type": "application/json",
                     },
                 })
-                console.log("----->> res ", res.status)
-                console.log("----->> res body ", res.json().model.state)
                 if (res.json().model.state === "STATE_ONLINE") {
                     break
                 }
@@ -173,7 +161,8 @@ export function cleanup(model, modelTags) {
     });
 
     for (let i = 0; i < modelTags.length; i++) {
-        check(http.request("DELETE", `${constant.apiHost}/v1alpha/models/${model}-${modelTags[i]}.replace(".", "")`, null, {}), {
+        let modelID = `${model}-${modelTags[i]}`.replace(".", "")
+        check(http.request("DELETE", `${constant.apiHost}/v1alpha/models/${modelID}`, null, {}), {
             [`DELETE /v1alpha/models/${model}-${modelTags[i]}.replace(".", "") response status is 204`]: (r) => r.status === 204,
         });
     }
