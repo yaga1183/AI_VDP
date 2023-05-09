@@ -6,7 +6,7 @@
     "model_definition": "model-definitions/github",
     "configuration": {
       "repository": "instill-ai/model-stomata-instance-segmentation-dvc",
-      "tag": "v2.0-gpu"
+      "tag": "v2.0-cpu"
     }
   },
   {
