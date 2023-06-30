@@ -44,10 +44,10 @@ RUN echo "VDP latest codebase cloned on ${CACHE_DATE}"
 RUN git clone -b huitang/ins-755-implement-get-asyncpipelinesoperations-endpoint https://github.com/instill-ai/api-gateway.git
 RUN git clone -b huitang/ins-906-integrate-connector-blockchain-into-connector-backend https://github.com/instill-ai/pipeline-backend.git
 RUN git clone -b huitang/ins-765-integrate-numbers-destination https://github.com/instill-ai/connector-backend.git
-RUN git clone https://github.com/instill-ai/model-backend.git
-RUN git clone https://github.com/instill-ai/mgmt-backend.git
-RUN git clone https://github.com/instill-ai/controller.git
-RUN git clone https://github.com/instill-ai/console.git
+RUN git clone -b v0.16.6-alpha https://github.com/instill-ai/model-backend.git
+RUN git clone -b v0.3.9-alpha https://github.com/instill-ai/mgmt-backend.git
+RUN git clone -b v0.1.6-alpha https://github.com/instill-ai/controller.git
+RUN git clone -b v0.24.0-alpha https://github.com/instill-ai/console.git
 
 FROM ubuntu:${UBUNTU_VERSION} AS release
 
