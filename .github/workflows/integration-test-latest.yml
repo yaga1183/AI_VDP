@@ -15,9 +15,7 @@ jobs:
           [
             pipeline-backend,
             connector-backend,
-            model-backend,
-            mgmt-backend,
-            controller,
+            controller-vdp
           ]
     uses: instill-ai/vdp/.github/workflows/integration-test-backend.yml@main
     with:

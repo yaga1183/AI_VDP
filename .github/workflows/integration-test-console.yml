@@ -1,6 +1,10 @@
 name: Integration Test Reusable (console)
 
 on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ins-1105-fix-the-the-integration-test-cicd-in-all-projects 
   workflow_call:
     inputs:
       target:
@@ -41,9 +45,8 @@ jobs:
           COMPOSE_PROFILES=all \
           EDITION=local-ce:test \
           ITMODE_ENABLED=true \
-          TRITON_CONDA_ENV_PLATFORM=cpu \
           CONSOLE_BASE_URL_HOST=console \
-          CONSOLE_BASE_API_GATEWAY_URL_HOST=api-gateway \
+          CONSOLE_BASE_API_GATEWAY_URL_HOST=api-gateway-vdp \
           docker compose -f docker-compose.yml -f docker-compose.latest.yml up -d --quiet-pull
           COMPOSE_PROFILES=all \
           EDITION=local-ce:test \
@@ -56,8 +59,8 @@ jobs:
           cd console && docker build --build-arg TEST_USER='root' -f Dockerfile.playwright -t console-playwright:latest .
           docker run -t --rm \
             -e NEXT_PUBLIC_CONSOLE_BASE_URL=http://console:3000 \
-            -e NEXT_PUBLIC_API_GATEWAY_BASE_URL=http://api-gateway:8080 \
-            -e NEXT_SERVER_API_GATEWAY_BASE_URL=http://api-gateway:8080 \
+            -e NEXT_PUBLIC_API_GATEWAY_BASE_URL=http://api-gateway-base:8080 \
+            -e NEXT_SERVER_API_GATEWAY_BASE_URL=http://api-gateway-base:8080 \
             -e NEXT_PUBLIC_API_VERSION=v1alpha \
             -e NEXT_PUBLIC_SELF_SIGNED_CERTIFICATION=false \
             -e NEXT_PUBLIC_INSTILL_AI_USER_COOKIE_NAME=instill-ai-user \
@@ -70,9 +73,8 @@ jobs:
         run: |
           EDITION=local-ce:test \
           ITMODE_ENABLED=true \
-          TRITON_CONDA_ENV_PLATFORM=cpu \
           CONSOLE_BASE_URL_HOST=console \
-          CONSOLE_BASE_API_GATEWAY_URL_HOST=api-gateway \
+          CONSOLE_BASE_API_GATEWAY_URL_HOST=api-gateway-vdp \
           docker compose up -d --quiet-pull
           EDITION=local-ce:test \
           docker compose rm -f
@@ -84,8 +86,8 @@ jobs:
           cd console && docker build --build-arg TEST_USER='root' -f Dockerfile.playwright -t console-playwright:${{ env.CONSOLE_VERSION }} .
           docker run -t --rm \
             -e NEXT_PUBLIC_CONSOLE_BASE_URL=http://console:3000 \
-            -e NEXT_PUBLIC_API_GATEWAY_BASE_URL=http://api-gateway:8080 \
-            -e NEXT_SERVER_API_GATEWAY_BASE_URL=http://api-gateway:8080 \
+            -e NEXT_PUBLIC_API_GATEWAY_BASE_URL=http://api-gateway-base:8080 \
+            -e NEXT_SERVER_API_GATEWAY_BASE_URL=http://api-gateway-base:8080 \
             -e NEXT_PUBLIC_API_VERSION=v1alpha \
             -e NEXT_PUBLIC_SELF_SIGNED_CERTIFICATION=false \
             -e NEXT_PUBLIC_INSTILL_AI_USER_COOKIE_NAME=instill-ai-user \

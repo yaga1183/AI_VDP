@@ -1,6 +1,10 @@
 name: Integration Test Reusable (backend)
 
 on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ins-1105-fix-the-the-integration-test-cicd-in-all-projects 
   workflow_call:
     inputs:
       component:
@@ -48,7 +52,6 @@ jobs:
           COMPOSE_PROFILES=all \
           EDITION=local-ce:test \
           ITMODE_ENABLED=true \
-          TRITON_CONDA_ENV_PLATFORM=cpu \
           docker compose -f docker-compose.yml -f docker-compose.latest.yml up -d --quiet-pull
           COMPOSE_PROFILES=all \
           EDITION=local-ce:test \
@@ -59,7 +62,7 @@ jobs:
         run: |
           git clone https://github.com/instill-ai/${{ inputs.component }}.git
           cd ${{ inputs.component }}
-          make integration-test API_GATEWAY_VDP_HOST=localhost API_GATEWAY_VDP_PORT=${API_GATEWAY_VDP_PORT}
+          make integration-test API_GATEWAY_HOST=localhost API_GATEWAY_PORT=${API_GATEWAY_VDP_PORT}
 
       - name: Uppercase component name
         if: inputs.target == 'release'
@@ -72,7 +75,6 @@ jobs:
         run: |
           EDITION=local-ce:test \
           ITMODE_ENABLED=true \
-          TRITON_CONDA_ENV_PLATFORM=cpu \
           docker compose up -d --quiet-pull
           EDITION=local-ce:test \
           docker compose rm -f
@@ -84,4 +86,4 @@ jobs:
         run: |
           git clone -b v$COMPONENT_VERSION https://github.com/instill-ai/${{ inputs.component }}.git
           cd ${{ inputs.component }}
-          make integration-test API_GATEWAY_VDP_HOST=localhost API_GATEWAY_VDP_PORT=${API_GATEWAY_VDP_PORT}
+          make integration-test API_GATEWAY_HOST=localhost API_GATEWAY_PORT=${API_GATEWAY_VDP_PORT}
