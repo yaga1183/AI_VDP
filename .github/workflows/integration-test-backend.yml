@@ -46,6 +46,18 @@ jobs:
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
 
+      - name: Launch Instill Base (latest)
+        if: inputs.target == 'latest'
+        run: |
+          git clone https://github.com/instill-ai/base.git
+          cd base
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml up -d --quiet-pull
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml rm -f      
+
       - name: Launch VDP (latest)
         if: inputs.target == 'latest'
         run: |
