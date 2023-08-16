@@ -54,8 +54,8 @@ RUN git clone https://github.com/instill-ai/base.git
 WORKDIR /instill-ai/vdp
 
 RUN git clone -b component_centric_refactor https://github.com/instill-ai/api-gateway.git
-RUN git clone -b component_centric_refactor https://github.com/instill-ai/pipeline-backend.git
-RUN git clone -b component_centric_refactor https://github.com/instill-ai/connector-backend.git
+RUN git clone https://github.com/instill-ai/pipeline-backend.git
+RUN git clone https://github.com/instill-ai/connector-backend.git
 RUN git clone https://github.com/instill-ai/controller-vdp.git
 
 FROM ubuntu:${UBUNTU_VERSION} AS release
