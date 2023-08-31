@@ -11,7 +11,7 @@ on:
         type: string
 
 jobs:
-  integration-test-latest:
+  integration-test-latest-ubuntu:
     if: inputs.target == 'latest'
     runs-on: ubuntu-latest
     steps:
@@ -88,7 +88,87 @@ jobs:
           cd ${{ inputs.component }}
           make integration-test API_GATEWAY_VDP_HOST=localhost API_GATEWAY_VDP_PORT=${API_GATEWAY_VDP_PORT}
 
-  integration-test-release:
+  integration-test-latest-mac:
+    if: inputs.target == 'latest'
+    runs-on: macos-12-xl
+    steps:
+      - name: Set up environment
+        run: |
+          brew update
+          brew install lsof
+
+      - name: Setup docker and docker-compose
+        run: |
+          brew install docker docker-compose
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+          colima start --cpu 8 --memory 15
+
+      - name: Install make
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          brew install make
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          repository: instill-ai/vdp
+
+      - name: Load .env file
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
+
+      - name: Install k6
+        run: |
+          brew install k6
+
+      - name: Checkout repo (base)
+        uses: actions/checkout@v3
+        with:
+          repository: instill-ai/base
+
+      - name: Load .env file (base)
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
+
+      - name: Launch Instill Base (latest)
+        run: |
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml up -d --quiet-pull
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml rm -f
+
+      - name: Checkout repo (vdp)
+        uses: actions/checkout@v3
+        with:
+          repository: instill-ai/vdp
+
+      - name: Load .env file (vdp)
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
+
+      - name: Launch Instill VDP (latest)
+        run: |
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml up -d --quiet-pull
+          COMPOSE_PROFILES=all \
+          EDITION=local-ce:test \
+          docker compose -f docker-compose.yml -f docker-compose.latest.yml rm -f
+
+      - name: Run ${{ inputs.component }} integration test (latest)
+        if: inputs.target == 'latest'
+        run: |
+          git clone https://github.com/instill-ai/${{ inputs.component }}.git
+          cd ${{ inputs.component }}
+          make integration-test API_GATEWAY_VDP_HOST=localhost API_GATEWAY_VDP_PORT=${API_GATEWAY_VDP_PORT}        
+
+  integration-test-release-ubuntu:
     if: inputs.target == 'release'
     runs-on: ubuntu-latest
     steps:
@@ -119,6 +199,88 @@ jobs:
           docker rmi $(docker image ls --all --quiet)
           rm --recursive --force "$AGENT_TOOLSDIRECTORY"
           df --human-readable
+
+      - name: Checkout repo (base)
+        uses: actions/checkout@v3
+        with:
+          repository: instill-ai/base
+
+      - name: Load .env file (base)
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
+
+      - name: Launch Instill Base (latest)
+        run: |
+          EDITION=local-ce:test \
+          docker compose up -d --quiet-pull
+          EDITION=local-ce:test \
+          docker compose rm -f
+
+      - name: Checkout repo (vdp)
+        uses: actions/checkout@v3
+        with:
+          repository: instill-ai/vdp
+
+      - name: Load .env file (vdp)
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
+
+      - name: Uppercase component name
+        id: uppercase
+        run: |
+          echo "COMPONENT_NAME=$(echo ${{ inputs.component }} | tr 'a-z-' 'A-Z_')" >> $GITHUB_OUTPUT
+
+      - name: Launch Instill VDP (release)
+        run: |
+          EDITION=local-ce:test \
+          docker compose up -d --quiet-pull
+          EDITION=local-ce:test \
+          docker compose rm -f
+
+      - name: Run ${{ inputs.component }} integration test (release)
+        env:
+          COMPONENT_VERSION: ${{ env[format('{0}_VERSION', steps.uppercase.outputs.COMPONENT_NAME)] }}
+        run: |
+          git clone -b v$COMPONENT_VERSION https://github.com/instill-ai/${{ inputs.component }}.git
+          cd ${{ inputs.component }}
+          make integration-test API_GATEWAY_VDP_HOST=localhost API_GATEWAY_VDP_PORT=${API_GATEWAY_VDP_PORT}
+
+  integration-test-release-mac:
+    if: inputs.target == 'release'
+    runs-on: macos-12-xl
+    steps:
+      - name: Set up environment
+        run: |
+          brew update
+          brew install lsof
+
+      - name: Setup docker and docker-compose
+        run: |
+          brew install docker docker-compose
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+          colima start --cpu 8 --memory 15
+
+      - name: Install make
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          brew install make
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          repository: instill-ai/vdp
+
+      - name: Load .env file
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: .env
+
+      - name: Install k6
+        run: |
+          brew install k6
 
       - name: Checkout repo (base)
         uses: actions/checkout@v3
